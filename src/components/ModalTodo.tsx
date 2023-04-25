@@ -70,7 +70,7 @@ export default function ModalTodo({
 						<Form.Select 
                             value={+todo.completed}
 							onChange={(e) => {
-								setTodo({ ...todo, completed: parseInt(e.target.value) === 1 });
+								setTodo({ ...todo, completed: !!parseInt(e.target.value) });
 							}}                        
                         >
 							<option value={0}>Incomplete</option>

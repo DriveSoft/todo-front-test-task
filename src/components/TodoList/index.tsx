@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import ListGroup from "react-bootstrap/ListGroup";
 import Item from "./Item";
-import { ITodo } from "../../types";
+import { ITodo, ITodoFilter } from "../../types";
 
 interface TodoListProps {
 	items: ITodo[];
+	filter: ITodoFilter;
 	onChangeItem: (todo: ITodo) => void;
 	onEditItem: (todo: ITodo) => void;
 	onDeleteItem: (todo: ITodo) => void;
@@ -12,22 +13,50 @@ interface TodoListProps {
 
 export default function TodoList({
 	items,
+	filter,
 	onChangeItem,
 	onEditItem,
 	onDeleteItem,
 }: TodoListProps) {
+
+	console.log('filter', filter);
+
+	const filterFunc = (item: ITodo) => {
+		let statusResult = true;
+		let titleResult = true;
+		let descResult = true;
+
+		if (filter.completed !== undefined) {
+			statusResult = item.completed === filter.completed;	
+		}
+
+		if (filter.title) {
+			titleResult = item.title.search(filter.title) > -1;	
+		}	
+		
+		if (filter.description) {
+			descResult = item.description.search(filter.description) > -1;	
+		}
+		
+		return statusResult && (titleResult || descResult);
+	}
+
+
 	return (
 		<ListGroup as="ol">
 			{items.map((item) => {
-				return (
-					<Item
-						key={item.id}
-						item={item}
-						onChangeItem={onChangeItem}
-						onEditItem={onEditItem}
-						onDeleteItem={onDeleteItem}
-					/>
-				);
+				if (filterFunc(item)) {
+					return (
+						<Item
+							key={item.id}
+							item={item}
+							onChangeItem={onChangeItem}
+							onEditItem={onEditItem}
+							onDeleteItem={onDeleteItem}
+						/>
+					);
+				}
+
 			})}
 		</ListGroup>
 	);

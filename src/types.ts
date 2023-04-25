@@ -4,3 +4,9 @@ export interface ITodo {
     description: string;
     completed: boolean;
 }
+
+export interface ITodoFilter {
+    title: string;
+    description: string;
+    completed: boolean | undefined;
+}
