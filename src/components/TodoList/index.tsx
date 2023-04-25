@@ -31,11 +31,11 @@ export default function TodoList({
 		}
 
 		if (filter.title) {
-			titleResult = item.title.search(filter.title) > -1;	
+			titleResult = item.title.toLowerCase().includes(filter.title.toLowerCase());	
 		}	
 		
 		if (filter.description) {
-			descResult = item.description.search(filter.description) > -1;	
+			descResult = item.description.toLowerCase().includes(filter.description.toLowerCase());
 		}
 		
 		return statusResult && (titleResult || descResult);
