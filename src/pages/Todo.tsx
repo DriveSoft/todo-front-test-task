@@ -5,12 +5,15 @@ import Form from "react-bootstrap/Form";
 import { Menu } from "../components/Menu";
 import TodoList from "../components/TodoList";
 import ModalTodo from "../components/ModalTodo";
+import Alert from "react-bootstrap/Alert";
 import { ITodo, ITodoFilter } from "../types";
 import "bootstrap/dist/css/bootstrap.min.css";
-import axios from "axios";
+// import axios from "axios";
+import axios from "../api/axios";
 
-function Todo() {
+export default function Todo() {
 	const [todos, setTodos] = useState<ITodo[]>([]);
+    const [error, setError] = useState<string>("");
 	const [showModal, setShowModal] = useState<ITodo | null>(null);
 	const [filterStatusTodo, setFilterStatusTodo] = useState<string>("ALL");
 	const [searchFilter, setSearchFilter] = useState<ITodoFilter>({
@@ -19,15 +22,44 @@ function Todo() {
 		completed: undefined,
 	});
 
+    const token = localStorage.getItem("accessToken");
+    const config = {
+        headers: { Authorization: `Bearer ${token}` }
+    };
+
 	useEffect(() => {
-		axios
-			.get("http://localhost:5000/api/todos")
-			.then((response) => {
-				setTodos(response.data);
-			})
-			.catch((error) => {
-				console.log(error);
-			});
+		// axios
+		// 	.get("http://localhost:5000/api/todos", config)
+		// 	.then((response) => {
+		// 		setTodos(response.data);
+		// 	})
+		// 	.catch((error) => {
+        //         setError(error.message);
+		// 		console.log(error);
+		// 	});
+
+        let isMounted = true;
+        const controller = new AbortController();
+
+        const getTodos = async () => {
+            try {
+                const response = await axios.get("/todos", {
+                    ...config,
+                    signal: controller.signal,
+                });
+                isMounted && setTodos(response.data);
+                
+            } catch (error: unknown) {
+                error instanceof Error && isMounted && setError(error.message);           
+            }
+        };
+
+        getTodos();
+
+        return () => {
+            isMounted = false;
+            controller.abort();
+        }
 	}, []);
 
 	const onSaveTodo = (todo: ITodo) => {
@@ -118,6 +150,7 @@ function Todo() {
 	return (
 		<>
 			<Menu onChangeSearch={onChangeSearch} />
+            {error && <div style={{ textAlign: "center" }}><Alert variant={"danger"}>{error}</Alert></div>}
 			<Stack
 				direction="horizontal"
 				gap={2}
@@ -166,5 +199,3 @@ function Todo() {
 		</>
 	);
 }
-
-export default Todo;
