@@ -22,23 +22,29 @@ export default function ModalTodo({
 		completed: false,
 	});
 
-    useEffect(() => {
-        if (show) setTodo({...show});
-    }, [show]);
+	useEffect(() => {
+		if (show) setTodo({ ...show });
+	}, [show]);
 
 	return (
 		<Modal show={!!show} onHide={handleClose}>
-			<Modal.Header closeButton>
-				<Modal.Title>Todo</Modal.Title>
-			</Modal.Header>
-			<Modal.Body>
-				<Form>
+			<Form
+				onSubmit={(e) => {
+					e.preventDefault();
+					onSave(todo);
+				}}
+			>
+				<Modal.Header closeButton>
+					<Modal.Title>Todo</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
 					<Form.Group
 						className="mb-3"
 						controlId="exampleForm.ControlTitle"
 					>
 						<Form.Label>Title</Form.Label>
 						<Form.Control
+							required
 							type="text"
 							autoFocus
 							value={todo.title}
@@ -67,26 +73,29 @@ export default function ModalTodo({
 						className="mb-3"
 						controlId="exampleForm.ControlCompleted"
 					>
-						<Form.Select 
-                            value={+todo.completed}
+						<Form.Select
+							value={+todo.completed}
 							onChange={(e) => {
-								setTodo({ ...todo, completed: !!parseInt(e.target.value) });
-							}}                        
-                        >
+								setTodo({
+									...todo,
+									completed: !!parseInt(e.target.value),
+								});
+							}}
+						>
 							<option value={0}>Incomplete</option>
 							<option value={1}>Complete</option>
 						</Form.Select>
 					</Form.Group>
-				</Form>
-			</Modal.Body>
-			<Modal.Footer>
-				<Button variant="secondary" onClick={handleClose}>
-					Close
-				</Button>
-				<Button variant="primary" onClick={() => onSave(todo)}>
-					Save Changes
-				</Button>
-			</Modal.Footer>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={handleClose}>
+						Close
+					</Button>
+					<Button variant="primary" type="submit">
+						Save Changes
+					</Button>
+				</Modal.Footer>
+			</Form>
 		</Modal>
 	);
 }

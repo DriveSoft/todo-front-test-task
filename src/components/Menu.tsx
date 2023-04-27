@@ -8,8 +8,9 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 
 interface MenuProps {
 	onChangeSearch(value: string): void;
+	onLogout(): void;
 }
-export function Menu({ onChangeSearch }: MenuProps) {
+export function Menu({ onChangeSearch, onLogout }: MenuProps) {
 	const [search, setSearch] = useState<string>("");
 	return (
 		<>
@@ -19,8 +20,8 @@ export function Menu({ onChangeSearch }: MenuProps) {
 					<Navbar.Toggle aria-controls="basic-navbar-nav" />
 					<Navbar.Collapse id="basic-navbar-nav">
 						<Nav className="me-auto">
-							<Nav.Link href="#home">Home</Nav.Link>
-							<Nav.Link href="#link">Link</Nav.Link>
+							<Nav.Link href="#home" onClick={onLogout}>Logout</Nav.Link>
+							{/* <Nav.Link href="#link">Link</Nav.Link>
 							<NavDropdown
 								title="Dropdown"
 								id="basic-nav-dropdown"
@@ -38,7 +39,7 @@ export function Menu({ onChangeSearch }: MenuProps) {
 								<NavDropdown.Item href="#action/3.4">
 									Separated link
 								</NavDropdown.Item>
-							</NavDropdown>
+							</NavDropdown> */}
 						</Nav>
 						<Form className="d-flex">
 							<Form.Control

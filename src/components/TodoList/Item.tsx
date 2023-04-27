@@ -20,19 +20,23 @@ export default function Item({
 			as="li"
 			className="d-flex justify-content-between align-items-start"
 		>
+		<div className="d-flex" style={{width: "100%"}}>
 			<Form.Check inline checked={item.completed} onChange={() => onChangeItem({...item, completed: !item.completed})} />
 
-			<div className="ms-2 me-auto">
-				<div className="fw-bold">{item.title}</div>
+			<div>
+				<div className="fw-bold" style={{textDecoration: item.completed ? "line-through": "none"}}>{item.title}</div>
 				{item.description}
 			</div>
 
-			<Button variant="light" size="lg" onClick={() => onEditItem({...item})}>
-				Edit
-			</Button>
-			<Button variant="light" size="lg" onClick={() => onDeleteItem({...item})}>
-				Delete
-			</Button>
+			<div className="d-flex ms-auto align-self-center flex-nowrap">
+				<Button className="align-self-center" variant="secondary" onClick={() => onEditItem({...item})}>
+				<span style={{color: "black"}}>✎</span>
+				</Button>
+				<Button className="ms-2 align-self-center" variant="secondary" onClick={() => onDeleteItem({...item})}>
+				✕
+				</Button>
+			</div>	
+		</div>
 		</ListGroup.Item>
 	);
 }

@@ -10,9 +10,13 @@ import { ITodo, ITodoFilter } from "../types";
 import "bootstrap/dist/css/bootstrap.min.css";
 // import axios from "axios";
 import axios from "../api/axios";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { useNavigate } from "react-router-dom";
 
 export default function Todo() {
 	const [todos, setTodos] = useState<ITodo[]>([]);
+    const axiosPrivate = useAxiosPrivate();
+    const navigate = useNavigate();
     const [error, setError] = useState<string>("");
 	const [showModal, setShowModal] = useState<ITodo | null>(null);
 	const [filterStatusTodo, setFilterStatusTodo] = useState<string>("ALL");
@@ -28,29 +32,22 @@ export default function Todo() {
     };
 
 	useEffect(() => {
-		// axios
-		// 	.get("http://localhost:5000/api/todos", config)
-		// 	.then((response) => {
-		// 		setTodos(response.data);
-		// 	})
-		// 	.catch((error) => {
-        //         setError(error.message);
-		// 		console.log(error);
-		// 	});
-
         let isMounted = true;
         const controller = new AbortController();
 
         const getTodos = async () => {
             try {
-                const response = await axios.get("/todos", {
+                const response = await axiosPrivate.get("/todos", {
                     ...config,
                     signal: controller.signal,
                 });
                 isMounted && setTodos(response.data);
                 
             } catch (error: unknown) {
-                error instanceof Error && isMounted && setError(error.message);           
+                if (error?.response?.status === 401 || error?.response?.status === 403) {
+                    navigate("/login");
+                }
+                error instanceof Error && isMounted && setError(error.message);                          
             }
         };
 
@@ -64,10 +61,11 @@ export default function Todo() {
 
 	const onSaveTodo = (todo: ITodo) => {
 		console.log(todo);
+        const todoPost = {title: todo.title, description: todo.description, completed: todo.completed};
 
 		if (!todo.id) {
-			axios
-				.post("http://localhost:5000/api/todos", todo)
+			axiosPrivate
+				.post("http://localhost:5000/api/todos", todoPost)
 				.then((response) => {
 					setTodos([...todos, response.data]);
 					setShowModal(null);
@@ -76,8 +74,8 @@ export default function Todo() {
 					console.log(error);
 				});
 		} else {
-			axios
-				.put(`http://localhost:5000/api/todos/${todo.id}`, todo)
+			axiosPrivate
+				.put(`http://localhost:5000/api/todos/${todo.id}`, todoPost)
 				.then((response) => {
 					const newTodos = todos.map((item) => {
 						if (item.id === todo.id) {
@@ -95,8 +93,9 @@ export default function Todo() {
 	};
 
 	const onChangeItem = (todo: ITodo) => {
-		axios
-			.put(`http://localhost:5000/api/todos/${todo.id}`, todo)
+        const todoPost = {title: todo.title, description: todo.description, completed: todo.completed};
+		axiosPrivate
+			.put(`http://localhost:5000/api/todos/${todo.id}`, todoPost)
 			.then((response) => {
 				const newTodos = todos.map((item) => {
 					if (item.id === todo.id) {
@@ -119,7 +118,7 @@ export default function Todo() {
 	};
 
 	const onDeleteItem = (todo: ITodo) => {
-		axios
+		axiosPrivate
 			.delete(`http://localhost:5000/api/todos/${todo.id}`)
 			.then((response) => {
 				const newTodos = todos.filter((item) => item.id !== todo.id);
@@ -147,28 +146,41 @@ export default function Todo() {
 		setSearchFilter({ ...searchFilter, completed: completeFilter });
 	};
 
+    const onLogout = () => {
+		axios
+			.get("/users/logout", {withCredentials: true})
+			.then((response) => {
+				console.log("onLogout", response);
+                navigate("/login");					
+			})
+			.catch((err) => {
+				console.log("catch", err);
+			});
+    }
+
 	return (
 		<>
-			<Menu onChangeSearch={onChangeSearch} />
+			<Menu onChangeSearch={onChangeSearch} onLogout={onLogout} />
             {error && <div style={{ textAlign: "center" }}><Alert variant={"danger"}>{error}</Alert></div>}
 			<Stack
 				direction="horizontal"
 				gap={2}
-				className="mt-5 col-md-6 mx-auto justify-content-between"
+				className="p-2 mt-5 col-md-6 mx-auto justify-content-between"
 			>
 				<Button
 					as="a"
-					variant="primary"
+					variant="outline-secondary"
 					onClick={() =>
 						setShowModal({
 							id: 0,
+                            user_id: 0,
 							title: "",
 							description: "",
 							completed: false,
 						})
 					}
 				>
-					Add task
+					✚
 				</Button>
 				<Form.Select
 					style={{ maxWidth: "150px" }}
@@ -181,7 +193,7 @@ export default function Todo() {
 				</Form.Select>
 			</Stack>
 
-			<Stack gap={2} className="mt-2 col-md-6 mx-auto">
+			<Stack gap={2} className="p-2 col-md-6 mx-auto">
 				<TodoList
 					filter={searchFilter}
 					items={todos}

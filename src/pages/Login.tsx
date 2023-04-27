@@ -3,90 +3,40 @@ import Stack from "react-bootstrap/Stack";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
-import { Link } from "react-router-dom";
-// import axios from "axios";
-import axios from "../api/axios";
+import { Link, useNavigate } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
+import { axiosPrivate } from "../api/axios";
+
 
 export default function Login() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [rememberMe, setRememberMe] = useState(false);
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
+	const { setAuth } = useAuth();
+	const navigate = useNavigate();
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setLoading(true);
 		setError("");
 
-		const headers = new Headers();
-		headers.append('Content-Type', 'application/json');
-		headers.append('Accept', 'application/json');
-		
-		fetch("http://localhost:5000/api/users/login", {
-			method: 'POST',
-			mode: "cors",
-			redirect: 'follow',
-			credentials: 'include', // Don't forget to specify this if you need cookies
-			headers: headers,
-			body: JSON.stringify({
-				email,
-				password
-			})
+		axiosPrivate.post("/users/login", {
+			email,
+			password
 		}).then((response) => {
-			response.json().then((data) => {
-				console.log(data);
-				console.log("then", response);
-				setLoading(false);
-	
-				if (response.status === 200) {
-					localStorage.setItem("accessToken", data.accessToken);
-					return;
-				}			
-			});
-	
-		})
-		.catch((err) => {
-			console.log("catch", err);
 			setLoading(false);
-			setError(err.message);
+			setAuth?.({accessToken: response.data.accessToken});
+			navigate("/todo");
+		}).catch((error) => {
+			console.log(error)
+			setLoading(false);
+			setError(error.response.data);
 		});
-
 	};
-
-	const onRefresh = () => {
-		axios
-			.get("/users/refreshaccesstoken", {withCredentials: true})
-			.then((response) => {
-				console.log("onRefresh", response);
-				if (response.status === 200) {
-					localStorage.setItem("accessToken", response.data.accessToken);
-					return;
-				}								
-			})
-			.catch((err) => {
-				console.log("catch", err);
-			});
-	};
-
-	const onLogout = () => {
-		axios
-			.get("/users/logout", {withCredentials: true})
-			.then((response) => {
-				console.log("onLogout", response);		
-				localStorage.removeItem("accessToken");					
-			})
-			.catch((err) => {
-				console.log("catch", err);
-			});
-	};	
-
 
 	return (
 		<Stack className="mt-5 col-md-6 mx-auto justify-content-between">
-		<Button onClick={onRefresh}>Refresh</Button>
-		<Button onClick={onLogout}>Logout</Button>
-
 			<Form className="p-3" onSubmit={handleSubmit}>
 				<h3>Sign In</h3>
 				<Form.Group className="mb-3" controlId="formBasicEmail">
@@ -110,15 +60,6 @@ export default function Login() {
 						onChange={(e) => setPassword(e.target.value)}
 					/>
 				</Form.Group>
-				<Form.Group className="mb-3" controlId="formBasicCheckbox">
-					<Form.Check
-						type="checkbox"
-						label="Remember me"
-						checked={rememberMe}
-						onChange={(e) => setRememberMe(e.target.checked)}
-					/>
-				</Form.Group>
-
 				<Form.Group className="mb-2" controlId="formBasicCheckbox">
 					<Button
 						variant="primary"

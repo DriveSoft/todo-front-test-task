@@ -4,7 +4,9 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
 import { Link } from "react-router-dom";
-import axios from "axios";
+// import axios from "axios";
+import axios from "../api/axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Signup() {
 	const [email, setEmail] = useState("");
@@ -12,6 +14,7 @@ export default function Signup() {
 	const [password2, setPassword2] = useState("");
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
+	const navigate = useNavigate();
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -20,11 +23,11 @@ export default function Signup() {
 			setError("Passwords do not match");
 			return;
 		}
-		
+
 		setLoading(true);
 		setError("");
 		axios
-			.post("http://localhost:5000/api/users", {
+			.post("/users", {
 				email,
 				password,
 			})
@@ -32,8 +35,8 @@ export default function Signup() {
 				console.log("then", res);
 				setLoading(false);
 
-				if (res.status === 201) {
-					//localStorage.setItem("token", res.data.token);
+				if (res.status === 201) {					
+					navigate("/login");
 					return;
 				}
 				setError(res.data);
