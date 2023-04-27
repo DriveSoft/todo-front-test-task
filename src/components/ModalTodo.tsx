@@ -59,6 +59,7 @@ export default function ModalTodo({
 					>
 						<Form.Label>Description</Form.Label>
 						<Form.Control
+							required
 							type="text"
 							value={todo.description}
 							onChange={(e) => {

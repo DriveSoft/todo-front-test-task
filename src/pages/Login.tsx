@@ -7,7 +7,6 @@ import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { axiosPrivate } from "../api/axios";
 
-
 export default function Login() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -75,7 +74,7 @@ export default function Login() {
 
 				<div style={{ textAlign: "center" }}>
 					<Form.Text className="text-muted text-center">
-						Don't have account? <Link to="/signup">sign up</Link>
+						Don't have account? <Link to="/signup">Sign up</Link>
 					</Form.Text>
 				</div>
 			</Form>

@@ -18,9 +18,7 @@ export default function TodoList({
 	onEditItem,
 	onDeleteItem,
 }: TodoListProps) {
-
-	console.log('filter', filter);
-
+	
 	const filterFunc = (item: ITodo) => {
 		let statusResult = true;
 		let titleResult = true;

@@ -4,7 +4,6 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Alert from "react-bootstrap/Alert";
 import { Link } from "react-router-dom";
-// import axios from "axios";
 import axios from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
@@ -26,26 +25,21 @@ export default function Signup() {
 
 		setLoading(true);
 		setError("");
-		axios
-			.post("/users", {
-				email,
-				password,
-			})
-			.then((res) => {
-				console.log("then", res);
-				setLoading(false);
-
-				if (res.status === 201) {					
-					navigate("/login");
-					return;
-				}
-				setError(res.data);
-			})
-			.catch((err) => {
-				console.log("catch", err);
-				setLoading(false);
-				setError(err.response.data);
-			});
+		axios.post("/users", {
+			email,
+			password,
+		}).then((res) => {
+			setLoading(false);
+			if (res.status === 201) {					
+				navigate("/login");
+				return;
+			}
+			setError(res.data);
+		}).catch((err) => {
+			console.log("catch", err);
+			setLoading(false);
+			setError(err.response.data);
+		});
 	};
 
 	return (

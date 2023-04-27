@@ -8,7 +8,6 @@ import ModalTodo from "../components/ModalTodo";
 import Alert from "react-bootstrap/Alert";
 import { ITodo, ITodoFilter } from "../types";
 import "bootstrap/dist/css/bootstrap.min.css";
-// import axios from "axios";
 import axios from "../api/axios";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate } from "react-router-dom";
@@ -26,11 +25,6 @@ export default function Todo() {
 		completed: undefined,
 	});
 
-    const token = localStorage.getItem("accessToken");
-    const config = {
-        headers: { Authorization: `Bearer ${token}` }
-    };
-
 	useEffect(() => {
         let isMounted = true;
         const controller = new AbortController();
@@ -38,12 +32,12 @@ export default function Todo() {
         const getTodos = async () => {
             try {
                 const response = await axiosPrivate.get("/todos", {
-                    ...config,
                     signal: controller.signal,
                 });
                 isMounted && setTodos(response.data);
                 
             } catch (error: unknown) {
+                //@ts-expect-error it's ok
                 if (error?.response?.status === 401 || error?.response?.status === 403) {
                     navigate("/login");
                 }
@@ -63,9 +57,9 @@ export default function Todo() {
 		console.log(todo);
         const todoPost = {title: todo.title, description: todo.description, completed: todo.completed};
 
-		if (!todo.id) {
+		if (!todo.id) { // create todo
 			axiosPrivate
-				.post("http://localhost:5000/api/todos", todoPost)
+				.post("/todos", todoPost)
 				.then((response) => {
 					setTodos([...todos, response.data]);
 					setShowModal(null);
@@ -73,9 +67,9 @@ export default function Todo() {
 				.catch((error) => {
 					console.log(error);
 				});
-		} else {
+		} else { // update todo
 			axiosPrivate
-				.put(`http://localhost:5000/api/todos/${todo.id}`, todoPost)
+				.put(`/todos/${todo.id}`, todoPost)
 				.then((response) => {
 					const newTodos = todos.map((item) => {
 						if (item.id === todo.id) {
@@ -95,7 +89,7 @@ export default function Todo() {
 	const onChangeItem = (todo: ITodo) => {
         const todoPost = {title: todo.title, description: todo.description, completed: todo.completed};
 		axiosPrivate
-			.put(`http://localhost:5000/api/todos/${todo.id}`, todoPost)
+			.put(`/todos/${todo.id}`, todoPost)
 			.then((response) => {
 				const newTodos = todos.map((item) => {
 					if (item.id === todo.id) {
@@ -111,7 +105,6 @@ export default function Todo() {
 	};
 
 	const onEditItem = (todo: ITodo) => {
-		// const todo = todos.find((item) => item.id === todo.id);
 		if (todo) {
 			setShowModal(todo);
 		}
@@ -119,7 +112,7 @@ export default function Todo() {
 
 	const onDeleteItem = (todo: ITodo) => {
 		axiosPrivate
-			.delete(`http://localhost:5000/api/todos/${todo.id}`)
+			.delete(`/todos/${todo.id}`)
 			.then((response) => {
 				const newTodos = todos.filter((item) => item.id !== todo.id);
 				setTodos(newTodos);
@@ -149,8 +142,7 @@ export default function Todo() {
     const onLogout = () => {
 		axios
 			.get("/users/logout", {withCredentials: true})
-			.then((response) => {
-				console.log("onLogout", response);
+			.then((response) => {				
                 navigate("/login");					
 			})
 			.catch((err) => {
