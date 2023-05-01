@@ -11,9 +11,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "../api/axios";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate } from "react-router-dom";
+import PaginationItems from "../components/PaginationItems";
+
+const ITEMS_PER_PAGE = 2;
 
 export default function Todo() {
 	const [todos, setTodos] = useState<ITodo[]>([]);
+	const [todosFiltered, setTodosFiltered] = useState<ITodo[]>([]);
     const axiosPrivate = useAxiosPrivate();
     const navigate = useNavigate();
     const [error, setError] = useState<string>("");
@@ -24,6 +28,7 @@ export default function Todo() {
 		description: "",
 		completed: undefined,
 	});
+	const [activePage, setActivePage] = useState(1);
 
 	useEffect(() => {
         let isMounted = true;
@@ -35,6 +40,7 @@ export default function Todo() {
                     signal: controller.signal,
                 });
                 isMounted && setTodos(response.data);
+				isMounted && setTodosFiltered(response.data);
                 
             } catch (error: unknown) {
                 //@ts-expect-error it's ok
@@ -52,6 +58,11 @@ export default function Todo() {
             controller.abort();
         }
 	}, []);
+
+	useEffect(() => {
+		const newTodos = todos.filter((item => filterFunc(item, searchFilter)));
+		setTodosFiltered(newTodos);
+	}, [searchFilter.title, searchFilter.description, searchFilter.completed, todos])
 
 	const onSaveTodo = (todo: ITodo) => {
 		console.log(todo);
@@ -188,11 +199,14 @@ export default function Todo() {
 			<Stack gap={2} className="p-2 col-md-6 mx-auto">
 				<TodoList
 					filter={searchFilter}
-					items={todos}
+					items={todosFiltered}
+					startIndex={(activePage - 1) * ITEMS_PER_PAGE}
+					endIndex={activePage * ITEMS_PER_PAGE}
 					onChangeItem={onChangeItem}
 					onEditItem={onEditItem}
 					onDeleteItem={onDeleteItem}
 				/>
+				<PaginationItems items={todosFiltered} active={activePage} itemsPerPage={ITEMS_PER_PAGE} onClick={setActivePage} />
 			</Stack>
 
 			<ModalTodo
@@ -202,4 +216,24 @@ export default function Todo() {
 			/>
 		</>
 	);
+}
+
+const filterFunc = (item: ITodo, searchFilter: ITodoFilter) => {
+	let statusResult = true;
+	let titleResult = true;
+	let descResult = true;
+
+	if (searchFilter.completed !== undefined) {
+		statusResult = item.completed === searchFilter.completed;	
+	}
+
+	if (searchFilter.title) {
+		titleResult = item.title.toLowerCase().includes(searchFilter.title.toLowerCase());	
+	}	
+	
+	if (searchFilter.description) {
+		descResult = item.description.toLowerCase().includes(searchFilter.description.toLowerCase());
+	}
+	
+	return statusResult && (titleResult || descResult);
 }

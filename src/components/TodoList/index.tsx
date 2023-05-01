@@ -6,6 +6,8 @@ import { ITodo, ITodoFilter } from "../../types";
 interface TodoListProps {
 	items: ITodo[];
 	filter: ITodoFilter;
+	startIndex: number;
+	endIndex: number;
 	onChangeItem: (todo: ITodo) => void;
 	onEditItem: (todo: ITodo) => void;
 	onDeleteItem: (todo: ITodo) => void;
@@ -14,36 +16,16 @@ interface TodoListProps {
 export default function TodoList({
 	items,
 	filter,
+	startIndex,
+	endIndex,
 	onChangeItem,
 	onEditItem,
 	onDeleteItem,
 }: TodoListProps) {
-	
-	const filterFunc = (item: ITodo) => {
-		let statusResult = true;
-		let titleResult = true;
-		let descResult = true;
-
-		if (filter.completed !== undefined) {
-			statusResult = item.completed === filter.completed;	
-		}
-
-		if (filter.title) {
-			titleResult = item.title.toLowerCase().includes(filter.title.toLowerCase());	
-		}	
-		
-		if (filter.description) {
-			descResult = item.description.toLowerCase().includes(filter.description.toLowerCase());
-		}
-		
-		return statusResult && (titleResult || descResult);
-	}
-
 
 	return (
 		<ListGroup as="ol">
-			{items.map((item) => {
-				if (filterFunc(item)) {
+			{items.slice(startIndex, endIndex).map((item) => {
 					return (
 						<Item
 							key={item.id}
@@ -53,8 +35,6 @@ export default function TodoList({
 							onDeleteItem={onDeleteItem}
 						/>
 					);
-				}
-
 			})}
 		</ListGroup>
 	);
